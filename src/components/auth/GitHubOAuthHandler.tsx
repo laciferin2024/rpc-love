@@ -31,32 +31,14 @@ export function GitHubOAuthHandler() {
     setError(null);
 
     try {
-      // In a real application, this would call your backend to exchange the code for a token
-      // For this demonstration, we'll simulate a successful authentication
-      // by bypassing the CORS issue and using a mock access token
-
-      // This is a temporary solution for demonstration purposes
-      // In production, you would have a server endpoint that handles the OAuth exchange
-      const mockAccessToken = `github_pat_${Date.now()}_mock_token`;
-
-      try {
-        // Try to use the real implementation first (will fail due to CORS)
-        await handleGitHubCallback(code, state);
-      } catch (err: any) {
-        console.log('Using mock authentication due to CORS constraints:', err.message);
-
-        // Get user profile using the mock token
-        const userProfile = await getGitHubUserProfile(mockAccessToken);
-
-        // Set authentication in the store
-        setAuth({
-          accessToken: mockAccessToken,
-          user: userProfile
-        });
-
-        // Clear URL parameters and navigate back to home
-        navigate('/', { replace: true });
-      }
+      const accessToken = await handleGitHubCallback(code, state);
+      const userProfile = await getGitHubUserProfile(accessToken);
+      setAuth({
+        accessToken,
+        user: userProfile
+      });
+      // Clear URL parameters and navigate back to home
+      navigate('/', { replace: true });
     } catch (err: any) {
       setError(err.message || 'Failed to authenticate with GitHub');
       console.error('Authentication error:', err);

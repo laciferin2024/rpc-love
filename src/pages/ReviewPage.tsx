@@ -103,7 +103,9 @@ export function ReviewPage() {
                     <Github className="h-4 w-4" />
                     <AlertTitle>Authentication Required</AlertTitle>
                     <AlertDescription>
-                      Please <Button variant="link" className="p-0 h-auto" onClick={signInWithGitHub}>sign in with GitHub</Button> to submit your changes.
+                      Please <Button variant="link" className="p-0 h-auto" onClick={() => signInWithGitHub().catch((err) => {
+                        console.error('Failed to initiate GitHub sign in:', err);
+                      })}>sign in with GitHub</Button> to submit your changes.
                     </AlertDescription>
                   </Alert>
                 )}

@@ -1,38 +1,157 @@
 import { Octokit } from 'octokit';
+
 const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID;
+const GITHUB_CLIENT_SECRET = import.meta.env.VITE_GITHUB_CLIENT_SECRET;
 const REDIRECT_URI = window.location.origin;
 const UPSTREAM_OWNER = 'Chain-Love';
 const UPSTREAM_REPO = 'chain-love';
-export const signInWithGitHub = () => {
+
+// Security warning: Client secrets should NOT be exposed in browser code for production SPAs.
+// Only use this if you're using a backend proxy that handles the secret securely.
+// For true frontend-only SPAs, use PKCE without a client secret.
+if (GITHUB_CLIENT_SECRET && typeof window !== 'undefined') {
+  console.warn(
+    '⚠️ SECURITY WARNING: VITE_GITHUB_CLIENT_SECRET is exposed in the browser bundle. ' +
+    'This is a security risk. For production, use PKCE without a client secret, ' +
+    'or handle the secret on a backend server.'
+  );
+}
+
+// CORS proxy URL - defaults to a public proxy if not configured
+// For production, users should set up their own CORS proxy
+const CORS_PROXY_URL = import.meta.env.VITE_CORS_PROXY_URL || 'https://corsproxy.io/?';
+
+// PKCE Helper Functions
+/**
+ * Generates a random code verifier for PKCE (43-128 characters, URL-safe)
+ */
+function generateCodeVerifier(): string {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  // Convert to base64url (URL-safe base64)
+  return btoa(String.fromCharCode(...array))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+}
+
+/**
+ * Generates a code challenge from a code verifier using SHA256 and base64url encoding
+ */
+async function generateCodeChallenge(verifier: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(verifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  // Convert to base64url
+  return btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+}
+export const signInWithGitHub = async () => {
   if (!GITHUB_CLIENT_ID) {
     console.error("VITE_GITHUB_CLIENT_ID is not set. Cannot initiate GitHub login.");
     alert("GitHub authentication is not configured. Please contact the site administrator.");
     return;
   }
+
+  // Generate PKCE parameters
+  const codeVerifier = generateCodeVerifier();
+  const codeChallenge = await generateCodeChallenge(codeVerifier);
   const state = Math.random().toString(36).substring(7);
-  localStorage.setItem('gh_oauth_state', state);
+
+  // Store code_verifier and state in sessionStorage (more secure than localStorage)
+  sessionStorage.setItem('gh_oauth_state', state);
+  sessionStorage.setItem('gh_oauth_code_verifier', codeVerifier);
+
+  // Build OAuth URL with PKCE parameters
   const params = new URLSearchParams({
     client_id: GITHUB_CLIENT_ID,
     redirect_uri: REDIRECT_URI,
     scope: 'repo,user',
     state: state,
+    code_challenge: codeChallenge,
+    code_challenge_method: 'S256',
   });
+
   window.location.href = `https://github.com/login/oauth/authorize?${params.toString()}`;
 };
-export const handleGitHubCallback = async (code: string, state: string) => {
-  const savedState = localStorage.getItem('gh_oauth_state');
+export const handleGitHubCallback = async (code: string, state: string): Promise<string> => {
+  // Verify state parameter
+  const savedState = sessionStorage.getItem('gh_oauth_state');
   if (state !== savedState) {
-    throw new Error('Invalid state parameter. Please try signing in again.');
+    sessionStorage.removeItem('gh_oauth_state');
+    sessionStorage.removeItem('gh_oauth_code_verifier');
+    throw new Error('Invalid state parameter. The authentication session may have expired. Please try signing in again.');
   }
-  localStorage.removeItem('gh_oauth_state');
-  console.error(
-    'CORS_ERROR: The following request will fail due to browser security (CORS). ' +
-    'A server-side proxy is required to exchange the code for an access token. ' +
-    'See comments in src/lib/github.ts for details.'
-  );
-  // MOCKING: In a real app, this would be a call to a backend proxy.
-  // To allow UI flow testing, we'll throw an error that suggests a mock token.
-  throw new Error('Token exchange failed due to CORS. A server-side proxy is required. You can test the flow by manually creating a fine-grained personal access token with repo permissions and pasting it into the Zustand devtools for the `accessToken` field.');
+
+  // Retrieve code_verifier
+  const codeVerifier = sessionStorage.getItem('gh_oauth_code_verifier');
+  if (!codeVerifier) {
+    sessionStorage.removeItem('gh_oauth_state');
+    throw new Error('Code verifier not found. The authentication session may have expired. Please try signing in again.');
+  }
+
+  // Clean up session storage
+  sessionStorage.removeItem('gh_oauth_state');
+  sessionStorage.removeItem('gh_oauth_code_verifier');
+
+  try {
+    // Exchange code for access token using CORS proxy
+    const tokenUrl = 'https://github.com/login/oauth/access_token';
+    const tokenParams = new URLSearchParams({
+      client_id: GITHUB_CLIENT_ID,
+      code: code,
+      redirect_uri: REDIRECT_URI,
+      code_verifier: codeVerifier,
+    });
+
+    // Include client_secret if provided (not recommended for SPAs - see security warning above)
+    if (GITHUB_CLIENT_SECRET) {
+      tokenParams.append('client_secret', GITHUB_CLIENT_SECRET);
+    }
+
+    // Use CORS proxy to make the request
+    const proxyUrl = CORS_PROXY_URL.endsWith('?') 
+      ? `${CORS_PROXY_URL}${encodeURIComponent(tokenUrl)}`
+      : `${CORS_PROXY_URL}${tokenUrl}`;
+
+    const response = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json',
+      },
+      body: tokenParams.toString(),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Token exchange failed: ${response.status} ${response.statusText}. ${errorText}`);
+    }
+
+    const data = await response.json();
+
+    // Handle error response from GitHub
+    if (data.error) {
+      throw new Error(`GitHub OAuth error: ${data.error_description || data.error}`);
+    }
+
+    if (!data.access_token) {
+      throw new Error('No access token received from GitHub. Please try signing in again.');
+    }
+
+    return data.access_token;
+  } catch (error: any) {
+    // Provide user-friendly error messages
+    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+      throw new Error('Network error: Could not connect to GitHub. Please check your internet connection and try again. If the problem persists, the CORS proxy may be unavailable.');
+    }
+    if (error.message.includes('CORS')) {
+      throw new Error('CORS error: The CORS proxy is not responding. Please configure a valid CORS proxy URL or set up your own proxy server.');
+    }
+    throw error;
+  }
 };
 export const getGitHubUserProfile = async (token: string) => {
   const octokit = new Octokit({ auth: token });

@@ -36,10 +36,16 @@ Follow these instructions to get a local copy up and running for development and
     ```
 3.  **Set up environment variables:**
     Create a `.env` file in the root of the project and add your GitHub OAuth App's Client ID. You can create an OAuth App in your GitHub developer settings. The callback URL should be your development server URL (e.g., `http://localhost:3000`).
+    
+    Optionally, configure a CORS proxy URL for OAuth token exchange. If not set, the application will use a default public proxy (not recommended for production).
     ```env
     # .env
-    VITE_GITHUB_CLIENT_ID="Ov23liPmRr7sw9RQpJYw"
+    VITE_GITHUB_CLIENT_ID="your_github_oauth_client_id"
+    # Optional: Custom CORS proxy for OAuth token exchange
+    # VITE_CORS_PROXY_URL="https://your-cors-proxy.com/"
     ```
+    
+    **Note**: For production deployments, you should set up your own CORS proxy server, as public proxies may be unreliable or have rate limits. See [GITHUB_AUTH.md](./GITHUB_AUTH.md) for more details on the OAuth flow and CORS proxy requirements.
 4.  **Run the development server:**
     ```bash
     bun dev
