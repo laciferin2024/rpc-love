@@ -1,5 +1,5 @@
 # RPC Love: Chain.Love Submitter
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/laciferin2024/rpc-love)
 RPC Love is a sophisticated, frontend-only web application designed to streamline the process of adding and updating RPC endpoints to the Chain.Love GitHub repository. It provides a guided, multi-step user experience, eliminating manual forks, edits, and pull requests. The application authenticates users via GitHub OAuth, fetches live RPC data from CSV files in the repository, and presents it in a clean, readable format. A wizard-like form guides the user through providing RPC details, with robust client-side validation. Upon submission, the application leverages the GitHub REST API to automatically fork the repository (if needed), create a new branch, commit the updated CSV files, and open a pull request for review. The entire process is executed client-side, with no backend services, offering a secure and efficient workflow for contributors.
 ## Key Features
 -   **GitHub OAuth Authentication**: Securely sign in with your GitHub account to get started.
@@ -81,7 +81,7 @@ This project is configured for easy deployment to Cloudflare.
     This command will build the Vite application and deploy it using the configuration in `wrangler.jsonc`.
 ### Deploy with the "Deploy to Cloudflare" Button
 You can also deploy this repository directly to your Cloudflare account by clicking the button below.
-[cloudflarebutton]
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/laciferin2024/rpc-love)
 ## Contributing
 Contributions are welcome! Please feel free to open an issue or submit a pull request.
 1.  Fork the Project
