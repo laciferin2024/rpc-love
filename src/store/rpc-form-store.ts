@@ -3,7 +3,7 @@ import { immer } from 'zustand/middleware/immer';
 import { devtools, persist } from 'zustand/middleware';
 import { Octokit } from 'octokit';
 import { getOrCreateFork, createBranch, updateFile, createPullRequest, getFileContent } from '@/lib/github';
-import { prepareCsvUpdates } from '@/lib/csv';
+import { prepareCsvUpdates, fetchAndParseCsv } from '@/lib/csv';
 import { z } from 'zod';
 import { rpcFormSchema } from '@/lib/schemas';
 export type CsvRow = Record<string, any>;
@@ -87,7 +87,6 @@ export const useRpcFormStore = create<RpcFormState & RpcFormActions>()(
         fetchCsvData: async () => {
           set({ isLoading: true, error: null });
           try {
-            const { fetchAndParseCsv } = await import('@/lib/csv');
             const [providersData, networkRpcsData] = await Promise.all([
               fetchAndParseCsv('https://raw.githubusercontent.com/Chain-Love/chain-love/refs/heads/main/providers/rpc.csv'),
               fetchAndParseCsv('https://raw.githubusercontent.com/Chain-Love/chain-love/refs/heads/main/networks/filecoin/rpc.csv'),
@@ -106,11 +105,21 @@ export const useRpcFormStore = create<RpcFormState & RpcFormActions>()(
           if (typeof updater === 'function') {
             updater(state.formData as RpcFormData);
           } else {
-            state.formData = {
-              ...state.formData, ...updater,
-              newProvider: { ...state.formData.newProvider, ...updater.newProvider },
-              network: { ...state.formData.network, ...updater.network },
-            };
+            // Type-safe deep merge for discriminated union
+            const draft = state.formData;
+            const partialUpdate = updater as Partial<RpcFormData>;
+            if (partialUpdate.providerType !== undefined) {
+              draft.providerType = partialUpdate.providerType;
+            }
+            if (partialUpdate.existingProviderSlug !== undefined) {
+              draft.existingProviderSlug = partialUpdate.existingProviderSlug;
+            }
+            if (partialUpdate.newProvider) {
+              draft.newProvider = { ...draft.newProvider, ...partialUpdate.newProvider };
+            }
+            if (partialUpdate.network) {
+              draft.network = { ...draft.network, ...partialUpdate.network };
+            }
           }
         }),
         nextStep: () => set((state) => ({ currentStep: Math.min(state.currentStep + 1, 3) })),
