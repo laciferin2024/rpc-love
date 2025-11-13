@@ -5,6 +5,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
@@ -14,13 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { useFormContext } from "react-hook-form";
-import { useRpcFormStore } from "@/store/rpc-form-store";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 export function StepProvider() {
-  const { control, watch } = useFormContext();
-  const providers = useRpcFormStore((s) => s.providers);
-  const providerType = watch('providerType');
   return (
     <Card className="w-full">
       <CardHeader>
@@ -30,101 +25,44 @@ export function StepProvider() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <FormField
-          control={control}
-          name="providerType"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormControl>
-                <RadioGroup
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  className="flex flex-col space-y-2"
-                >
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="existing" id="r-existing" />
-                    </FormControl>
-                    <FormLabel htmlFor="r-existing" className="font-normal cursor-pointer">
-                      Use an existing provider
-                    </FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-3 space-y-0">
-                    <FormControl>
-                      <RadioGroupItem value="new" id="r-new" />
-                    </FormControl>
-                    <FormLabel htmlFor="r-new" className="font-normal cursor-pointer">
-                      Create a new provider
-                    </FormLabel>
-                  </FormItem>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        {providerType === 'existing' && (
-          <div className="space-y-4 animate-fade-in">
-            <FormField
-              control={control}
-              name="existingProviderSlug"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Select Provider</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Search for a provider..." />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {providers.map((p) => (
-                        <SelectItem key={p.slug} value={p.slug}>
-                          {p.provider} ({p.slug})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <RadioGroup defaultValue="existing" className="space-y-2">
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="existing" id="r-existing" />
+            <Label htmlFor="r-existing">Use an existing provider</Label>
           </div>
-        )}
-        {providerType === 'new' && (
-          <div className="space-y-4 animate-fade-in">
-            <h3 className="font-semibold text-foreground">New Provider Details</h3>
-            <FormField
-              control={control}
-              name="newProvider.name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Provider Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Awesome RPC" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={control}
-              name="newProvider.slug"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Provider Slug</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., awesome-rpc" {...field} />
-                  </FormControl>
-                  <p className="text-xs text-muted-foreground pt-1">
-                    A unique identifier (lowercase, alphanumeric, hyphens).
-                  </p>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="new" id="r-new" />
+            <Label htmlFor="r-new">Create a new provider</Label>
           </div>
-        )}
+        </RadioGroup>
+        <div className="space-y-4 animate-fade-in">
+          <Label htmlFor="provider-select">Select Provider</Label>
+          <Select>
+            <SelectTrigger id="provider-select">
+              <SelectValue placeholder="Search for a provider..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ankr">Ankr</SelectItem>
+              <SelectItem value="infura">Infura</SelectItem>
+              <SelectItem value="alchemy">Alchemy</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {/* This part would be shown conditionally based on radio selection */}
+        <div className="space-y-4 hidden animate-fade-in">
+          <h3 className="font-semibold text-foreground">New Provider Details</h3>
+          <div className="space-y-2">
+            <Label htmlFor="new-provider-name">Provider Name</Label>
+            <Input id="new-provider-name" placeholder="e.g., Awesome RPC" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="new-provider-slug">Provider Slug</Label>
+            <Input id="new-provider-slug" placeholder="e.g., awesome-rpc" />
+            <p className="text-xs text-muted-foreground">
+              A unique identifier (alphanumeric, hyphens, underscores).
+            </p>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
