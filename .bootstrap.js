@@ -80,7 +80,8 @@ function runSetupCommands() {
     const commands = [
     "bun add papaparse@^5.4.1",
     "bun add @types/papaparse@^5.3.11",
-    "bun add octokit@^5.0.0"
+    "bun add octokit@^5.0.0",
+    "bun install papaparse @types/papaparse"
 ];
     
     if (commands.length === 0) {
