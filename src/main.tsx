@@ -23,10 +23,11 @@ createRoot(document.getElementById('root')!).render(
     <ErrorBoundary>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<HomePage />} errorElement={<RouteErrorBoundary />} />
-          <Route path="/add" element={<AddRpcPage />} errorElement={<RouteErrorBoundary />} />
-          <Route path="/review" element={<ReviewPage />} errorElement={<RouteErrorBoundary />} />
-          <Route path="/success" element={<SuccessPage />} errorElement={<RouteErrorBoundary />} />
+          <Route path="/" element={<HomePage />} />
+          <Route path="/add" element={<AddRpcPage />} />
+          <Route path="/review" element={<ReviewPage />} />
+          <Route path="/success" element={<SuccessPage />} />
+          <Route path="*" element={<RouteErrorBoundary />} />
         </Routes>
         <Toaster richColors />
       </BrowserRouter>
