@@ -12,8 +12,8 @@ export const newProviderSchema = z.object({
 });
 const step1ExistingProvider = z.object({
     providerType: z.literal('existing'),
-    existingProviderSlug: z.string({ required_error: "Please select a provider." }).min(1, "Please select a provider."),
-    newProvider: newProviderSchema.partial(),
+    existingProviderSlug: z.string().min(1, "Please select a provider."),
+    newProvider: newProviderSchema.partial().optional(),
 });
 const step1NewProvider = z.object({
     providerType: z.literal('new'),

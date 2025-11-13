@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useRpcFormStore, RpcFormData } from "@/store/rpc-form-store";
-import { useForm, FormProvider } from "react-hook-form";
+import { useForm, FormProvider, FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { rpcFormSchema, step1Schema, step2Schema } from "@/lib/schemas";
+import { rpcFormSchema } from "@/lib/schemas";
 import { useEffect } from "react";
 import { toast } from "sonner";
 export function AddRpcPage() {
@@ -31,7 +31,13 @@ export function AddRpcPage() {
     return () => subscription.unsubscribe();
   }, [watch, setFormData]);
   const handleNext = async () => {
-    const isValid = await trigger(Object.keys(step1Schema.shape));
+    const step1Fields: FieldPath<RpcFormData>[] = [
+      'providerType',
+      'existingProviderSlug',
+      'newProvider.name',
+      'newProvider.slug',
+    ];
+    const isValid = await trigger(step1Fields);
     if (isValid) {
       nextStep();
     } else {
