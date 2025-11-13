@@ -13,21 +13,13 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { signInWithGitHub } from "@/lib/github";
 export function ReviewPage() {
   const navigate = useNavigate();
-  const {
-    formData,
-    submission,
-    auth,
-    prepareSubmission,
-    setSubmissionDetails,
-    submitToGitHub,
-  } = useRpcFormStore((s) => ({
-    formData: s.formData,
-    submission: s.submission,
-    auth: s.auth,
-    prepareSubmission: s.prepareSubmission,
-    setSubmissionDetails: s.setSubmissionDetails,
-    submitToGitHub: s.submitToGitHub,
-  }));
+  // Use individual selectors to avoid creating new object references on each render
+  const formData = useRpcFormStore((s) => s.formData);
+  const submission = useRpcFormStore((s) => s.submission);
+  const auth = useRpcFormStore((s) => s.auth);
+  const prepareSubmission = useRpcFormStore((s) => s.prepareSubmission);
+  const setSubmissionDetails = useRpcFormStore((s) => s.setSubmissionDetails);
+  const submitToGitHub = useRpcFormStore((s) => s.submitToGitHub);
   useEffect(() => {
     prepareSubmission();
   }, [prepareSubmission]);

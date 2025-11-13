@@ -7,11 +7,10 @@ import { useRpcFormStore } from "@/store/rpc-form-store";
 import { useEffect } from "react";
 export function SuccessPage() {
   const navigate = useNavigate();
-  const { submission, auth, reset } = useRpcFormStore((s) => ({
-    submission: s.submission,
-    auth: s.auth,
-    reset: s.reset,
-  }));
+  // Use individual selectors to avoid creating new object references on each render
+  const submission = useRpcFormStore((s) => s.submission);
+  const auth = useRpcFormStore((s) => s.auth);
+  const reset = useRpcFormStore((s) => s.reset);
   const { prUrl, branchName } = submission;
   const user = auth.user;
   useEffect(() => {

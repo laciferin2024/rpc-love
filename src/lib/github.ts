@@ -158,6 +158,23 @@ export const getGitHubUserProfile = async (token: string) => {
   const { data: user } = await octokit.rest.users.getAuthenticated();
   return user;
 };
+/**
+ * Encodes a UTF-8 string to base64, properly handling Unicode characters.
+ * The native btoa() function only works with Latin1, so we need to encode to UTF-8 bytes first.
+ */
+function utf8ToBase64(str: string): string {
+  // Convert UTF-8 string to bytes using TextEncoder
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(str);
+  
+  // Convert bytes to binary string and then to base64
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 // --- GitHub API Actions ---
 export const getOrCreateFork = async (octokit: Octokit) => {
   try {
@@ -219,7 +236,7 @@ export const updateFile = async (octokit: Octokit, owner: string, repo: string, 
     repo,
     path,
     message,
-    content: btoa(content), // Base64 encode content
+    content: utf8ToBase64(content), // Base64 encode content (UTF-8 safe)
     branch,
     sha: sha || undefined, // Provide SHA if updating, otherwise it's a new file
   });
