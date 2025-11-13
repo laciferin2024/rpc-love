@@ -57,7 +57,7 @@ export function AppHeader() {
           <div className="flex items-center gap-6">
             <Link to="/" className="flex items-center gap-2">
               <LinkIcon className="h-6 w-6 text-blue-600" />
-              <span className="font-bold text-lg font-display">RPC Forge</span>
+              <span className="font-bold text-lg font-display">RPC Love</span>
             </Link>
             <div className="hidden sm:flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Network:</span>
