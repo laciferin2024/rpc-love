@@ -8,25 +8,69 @@ import { useRpcFormStore, RpcFormData } from "@/store/rpc-form-store";
 import { useForm, FormProvider, FieldPath } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { rpcFormSchema } from "@/lib/schemas";
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { getDummyFormValues } from "@/lib/dummy-values";
+
 export function AddRpcPage() {
   const currentStep = useRpcFormStore((s) => s.currentStep);
   const formData = useRpcFormStore((s) => s.formData);
+  const providers = useRpcFormStore((s) => s.providers);
   const nextStep = useRpcFormStore((s) => s.nextStep);
   const prevStep = useRpcFormStore((s) => s.prevStep);
   const setFormData = useRpcFormStore((s) => s.setFormData);
   const navigate = useNavigate();
+  const isInitializingRef = useRef(false);
+  
+  // Capture initial form state once on mount using lazy initialization
+  const [initialFormData] = useState(() => formData);
+  
+  // Check if initial form was empty
+  const initialIsEmpty = useMemo(() => {
+    return (
+      initialFormData.providerType === 'existing' && initialFormData.existingProviderSlug === '' &&
+      initialFormData.newProvider.name === '' && initialFormData.newProvider.slug === '' &&
+      initialFormData.network.slug === ''
+    );
+  }, [initialFormData]);
+  
+  // In development mode, use dummy values if initial form was empty
+  const defaultFormData = useMemo(() => {
+    if (import.meta.env.DEV && initialIsEmpty) {
+      return getDummyFormValues();
+    }
+    return initialFormData;
+  }, [initialFormData, initialIsEmpty]);
+  
   const methods = useForm<RpcFormData>({
     resolver: zodResolver(rpcFormSchema),
-    defaultValues: formData,
+    defaultValues: defaultFormData,
     mode: 'onBlur',
   });
-  const { trigger, watch } = methods;
+  const { trigger, watch, reset } = methods;
+  
+  // Initialize store with dummy values in development mode (after methods is created)
+  useEffect(() => {
+    if (import.meta.env.DEV && initialIsEmpty) {
+      isInitializingRef.current = true;
+      const dummyValues = getDummyFormValues();
+      setFormData(dummyValues);
+      reset(dummyValues, { keepDefaultValues: true });
+      // Reset the flag after a brief delay to allow the form to settle
+      setTimeout(() => {
+        isInitializingRef.current = false;
+      }, 100);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
+  
   // Sync RHF state back to Zustand store on change
   useEffect(() => {
     const subscription = watch((value) => {
-      setFormData(value as RpcFormData);
+      // Skip syncing during initialization to prevent infinite loops
+      if (!isInitializingRef.current) {
+        setFormData(value as RpcFormData);
+      }
     });
     return () => subscription.unsubscribe();
   }, [watch, setFormData]);
