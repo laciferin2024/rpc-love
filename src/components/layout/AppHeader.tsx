@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Github, Link as LinkIcon, ChevronDown, LogOut } from 'lucide-react';
+import { Github, ChevronDown, LogOut } from 'lucide-react';
 import { useRpcFormStore } from '@/store/rpc-form-store';
 import { signInWithGitHub, handleGitHubCallback, getGitHubUserProfile } from '@/lib/github';
 import { useEffect, useState } from 'react';
@@ -54,7 +54,7 @@ export function AppHeader() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-6">
             <Link to="/" className="flex items-center gap-2">
-              <LinkIcon className="h-6 w-6 text-blue-600" />
+              <img src="/logo.jpeg" alt="RPC Love" className="h-8 w-8 rounded-md object-contain" />
               <span className="font-bold text-lg font-display">RPC Love</span>
             </Link>
             <div className="hidden sm:flex items-center gap-2">

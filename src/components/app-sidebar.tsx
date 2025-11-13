@@ -21,8 +21,8 @@ export function AppSidebar(): JSX.Element {
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-1">
-          <div className="h-6 w-6 rounded-md bg-gradient-to-br from-indigo-500 to-purple-500" />
-          <span className="text-sm font-medium">Template</span>
+          <img src="/logo.jpeg" alt="RPC Love" className="h-6 w-6 rounded-md object-contain" />
+          <span className="text-sm font-medium">RPC Love</span>
         </div>
         <SidebarInput placeholder="Search" />
       </SidebarHeader>
