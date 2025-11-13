@@ -12,11 +12,11 @@ export function HomePage() {
   const isLoading = useRpcFormStore((s) => s.isLoading);
   const error = useRpcFormStore((s) => s.error);
   useEffect(() => {
-    // Fetch data only if it hasn't been fetched yet
-    if (providers.length === 0 && networkRpcs.length === 0) {
+    // Fetch data only if it hasn't been fetched yet and we are not already loading
+    if (providers.length === 0 && networkRpcs.length === 0 && !isLoading) {
       fetchCsvData();
     }
-  }, [fetchCsvData, providers.length, networkRpcs.length]);
+  }, [fetchCsvData, providers.length, networkRpcs.length, isLoading]);
   return (
     <div className="flex flex-col min-h-screen bg-muted/40">
       <AppHeader />
