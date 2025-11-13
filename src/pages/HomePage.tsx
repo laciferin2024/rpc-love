@@ -11,6 +11,7 @@ export function HomePage() {
   const networkRpcs = useRpcFormStore((s) => s.networkRpcs);
   const isLoading = useRpcFormStore((s) => s.isLoading);
   const error = useRpcFormStore((s) => s.error);
+
   useEffect(() => {
     // Fetch data only if it hasn't been fetched yet and we are not already loading
     if (providers.length === 0 && networkRpcs.length === 0 && !isLoading) {
