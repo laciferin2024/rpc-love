@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { devtools, persist } from 'zustand/middleware';
 import { Octokit } from 'octokit';
-import { getOrCreateFork, createBranch, updateFile, createPullRequest } from '@/lib/github';
+import { getOrCreateFork, createBranch, updateFile, createPullRequest, getFileContent } from '@/lib/github';
 import { prepareCsvUpdates } from '@/lib/csv';
 export type CsvRow = Record<string, any>;
 export type ActionButton = { label: string; url: string };
@@ -171,10 +171,12 @@ export const useRpcFormStore = create<RpcFormState & RpcFormActions>()(
             await createBranch(octokit, userLogin, fork.name, submission.branchName);
             const { providersCsv, networkRpcsCsv, providerChanges, networkChanges } = prepareCsvUpdates(formData, providers, networkRpcs);
             if (providerChanges) {
-              await updateFile(octokit, userLogin, fork.name, 'providers/rpc.csv', providersCsv, submission.commitMessage, submission.branchName, null);
+              const { sha } = await getFileContent(octokit, userLogin, fork.name, 'providers/rpc.csv', submission.branchName);
+              await updateFile(octokit, userLogin, fork.name, 'providers/rpc.csv', providersCsv, submission.commitMessage, submission.branchName, sha);
             }
             if (networkChanges) {
-              await updateFile(octokit, userLogin, fork.name, 'networks/filecoin/rpc.csv', networkRpcsCsv, submission.commitMessage, submission.branchName, null);
+              const { sha } = await getFileContent(octokit, userLogin, fork.name, 'networks/filecoin/rpc.csv', submission.branchName);
+              await updateFile(octokit, userLogin, fork.name, 'networks/filecoin/rpc.csv', networkRpcsCsv, submission.commitMessage, submission.branchName, sha);
             }
             const pr = await createPullRequest(octokit, userLogin, fork.name, submission.branchName, 'main', submission.prTitle, submission.prBody);
             set((s) => {
