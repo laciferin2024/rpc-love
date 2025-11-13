@@ -78,7 +78,7 @@ export const useRpcFormStore = create<RpcFormState & RpcFormActions>()(
       immer((set, get) => ({
         providers: [],
         networkRpcs: [],
-        isLoading: true,
+        isLoading: false,
         error: null,
         formData: initialFormData,
         currentStep: 1,

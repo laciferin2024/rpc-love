@@ -13,7 +13,7 @@ export function HomePage() {
   const error = useRpcFormStore((s) => s.error);
 
   useEffect(() => {
-    // Fetch data only if it hasn't been fetched yet and we are not already loading
+    // Fetch data on mount if it hasn't been loaded yet and we are not already loading
     if (providers.length === 0 && networkRpcs.length === 0 && !isLoading) {
       fetchCsvData();
     }
