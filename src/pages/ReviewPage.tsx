@@ -88,6 +88,10 @@ export function ReviewPage() {
                       <Label htmlFor="pr-title">Pull Request Title</Label>
                       <Input id="pr-title" value={submission.prTitle} onChange={(e) => setSubmissionDetails({ prTitle: e.target.value })} />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="pr-body">Pull Request Body</Label>
+                      <Textarea id="pr-body" value={submission.prBody} onChange={(e) => setSubmissionDetails({ prBody: e.target.value })} className="min-h-[300px] font-mono text-sm" />
+                    </div>
                   </CardContent>
                 </Card>
                 {!auth.isAuthenticated && (

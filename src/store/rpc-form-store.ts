@@ -138,13 +138,36 @@ export const useRpcFormStore = create<RpcFormState & RpcFormActions>()(
         logout: () => set((state) => { state.auth = initialAuthState; }),
         prepareSubmission: () => set((state) => {
           const slug = state.formData.network.slug;
+          const providerSlug = state.formData.providerType === 'existing' 
+            ? state.formData.existingProviderSlug 
+            : state.formData.newProvider.slug;
           const timestamp = Math.floor(Date.now() / 1000);
-          const branchName = `cl-rpc-${slug}-${timestamp}`;
+          const branchName = `rpc-love/${providerSlug}/${timestamp}`;
           const commitMessage = `feat: add ${slug} to filecoin network`;
           const prTitle = `feat(rpc): Add ${slug} for Filecoin`;
+          const prBody = `> ## Validation checklist
+
+> * [x]  I followed the Style Guide and Column Definitions
+>   
+>   * Style Guide: https://github.com/Chain-Love/chain-love/wiki/Style-Guide
+>   * Column Definitions: https://github.com/Chain-Love/chain-love/wiki
+> * [x]  Rows are placed in the correct folder(s) and CSV(s)
+>   
+>   * \`networks/<chain>/<category>.csv\` for chain-scoped entries
+>   * \`providers/<category>.csv\` when the provider/service is chain-agnostic or cross-chain
+> * [x]  No duplicate entries (by provider + chain + relevant key columns)
+> * [x]  CSV formatting: comma-delimited, quote fields as needed, UTF-8, no BOM
+> * [x]  Values match defined types/enums per Column Definitions
+> * [x]  No unintended whitespace, trailing commas, or empty lines
+> 
+
+---
+
+Made with ❤️ by [RPC.love](https://rpc-love.ideomind.org). Github : https://github.com/laciferin2024/rpc-love`;
           state.submission.branchName = branchName;
           state.submission.commitMessage = commitMessage;
           state.submission.prTitle = prTitle;
+          state.submission.prBody = prBody;
         }),
         setSubmissionDetails: (details) => set((state) => {
           state.submission = { ...state.submission, ...details };
