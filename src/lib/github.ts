@@ -252,3 +252,12 @@ export const createPullRequest = async (octokit: Octokit, owner: string, repo: s
   });
   return pr;
 };
+export const createPullRequestComment = async (octokit: Octokit, prNumber: number, body: string) => {
+  const { data: comment } = await octokit.rest.issues.createComment({
+    owner: UPSTREAM_OWNER,
+    repo: UPSTREAM_REPO,
+    issue_number: prNumber,
+    body,
+  });
+  return comment;
+};

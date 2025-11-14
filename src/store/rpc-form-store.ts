@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { devtools, persist } from 'zustand/middleware';
 import { Octokit } from 'octokit';
-import { getOrCreateFork, createBranch, updateFile, createPullRequest, getFileContent } from '@/lib/github';
+import { getOrCreateFork, createBranch, updateFile, createPullRequest, createPullRequestComment, getFileContent } from '@/lib/github';
 import { prepareCsvUpdates, fetchAndParseCsv } from '@/lib/csv';
 import { z } from 'zod';
 import { rpcFormSchema } from '@/lib/schemas';
@@ -145,25 +145,22 @@ export const useRpcFormStore = create<RpcFormState & RpcFormActions>()(
           const branchName = `rpc-love/${providerSlug}/${timestamp}`;
           const commitMessage = `feat: add ${slug} to filecoin network`;
           const prTitle = `feat(rpc): Add ${slug} for Filecoin`;
-          const prBody = `> ## Validation checklist
+          const prBody = `## Validation checklist
 
-> * [x]  I followed the Style Guide and Column Definitions
->   
->   * Style Guide: https://github.com/Chain-Love/chain-love/wiki/Style-Guide
->   * Column Definitions: https://github.com/Chain-Love/chain-love/wiki
-> * [x]  Rows are placed in the correct folder(s) and CSV(s)
->   
->   * \`networks/<chain>/<category>.csv\` for chain-scoped entries
->   * \`providers/<category>.csv\` when the provider/service is chain-agnostic or cross-chain
-> * [x]  No duplicate entries (by provider + chain + relevant key columns)
-> * [x]  CSV formatting: comma-delimited, quote fields as needed, UTF-8, no BOM
-> * [x]  Values match defined types/enums per Column Definitions
-> * [x]  No unintended whitespace, trailing commas, or empty lines
-> 
+* [x]  I followed the Style Guide and Column Definitions
+  * Style Guide: https://github.com/Chain-Love/chain-love/wiki/Style-Guide
+  * Column Definitions: https://github.com/Chain-Love/chain-love/wiki
+* [x]  Rows are placed in the correct folder(s) and CSV(s)
+  * \`networks/<chain>/<category>.csv\` for chain-scoped entries
+  * \`providers/<category>.csv\` when the provider/service is chain-agnostic or cross-chain
+* [x]  No duplicate entries (by provider + chain + relevant key columns)
+* [x]  CSV formatting: comma-delimited, quote fields as needed, UTF-8, no BOM
+* [x]  Values match defined types/enums per Column Definitions
+* [x]  No unintended whitespace, trailing commas, or empty lines
 
 ---
 
-Made with ❤️ by [RPC.love](https://rpc-love.ideomind.org). Github : https://github.com/laciferin2024/rpc-love`;
+Made with ❤️ by [RPC.love](https://rpc-love.ideomind.org)`;
           state.submission.branchName = branchName;
           state.submission.commitMessage = commitMessage;
           state.submission.prTitle = prTitle;
@@ -194,6 +191,11 @@ Made with ❤️ by [RPC.love](https://rpc-love.ideomind.org). Github : https://
               await updateFile(octokit, userLogin, fork.name, 'networks/filecoin/rpc.csv', networkRpcsCsv, submission.commitMessage, submission.branchName, sha);
             }
             const pr = await createPullRequest(octokit, userLogin, fork.name, submission.branchName, 'main', submission.prTitle, submission.prBody);
+            // Add a review comment to the PR
+            const reviewComment = `Thank you for your submission! This PR was created using [RPC.love](https://rpc-love.ideomind.org).
+
+Please ensure all validation checklist items are completed before requesting review.`;
+            await createPullRequestComment(octokit, pr.number, reviewComment);
             set((s) => {
               s.submission.status = 'success';
               s.submission.prUrl = pr.html_url;
