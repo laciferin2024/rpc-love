@@ -141,8 +141,20 @@ export const useRpcFormStore = create<RpcFormState & RpcFormActions>()(
           const providerSlug = state.formData.providerType === 'existing' 
             ? state.formData.existingProviderSlug 
             : state.formData.newProvider.slug;
-          const timestamp = Math.floor(Date.now() / 1000);
-          const branchName = `rpc-love/${providerSlug}/${timestamp}`;
+          // Create readable date format: YYYY-MM-DD-HHMM-TZ
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = String(now.getMonth() + 1).padStart(2, '0');
+          const day = String(now.getDate()).padStart(2, '0');
+          const hours = String(now.getHours()).padStart(2, '0');
+          const minutes = String(now.getMinutes()).padStart(2, '0');
+          // Get timezone abbreviation (e.g., PST, EST, UTC) and sanitize for branch names
+          const timezonePart = Intl.DateTimeFormat('en', { timeZoneName: 'short' }).formatToParts(now)
+            .find(part => part.type === 'timeZoneName')?.value || 'UTC';
+          // Sanitize timezone: remove any special characters, keep only alphanumeric
+          const timezone = timezonePart.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() || 'UTC';
+          const dateStr = `${year}-${month}-${day}-${hours}${minutes}-${timezone}`;
+          const branchName = `rpc-love/${providerSlug}/${dateStr}`;
           const commitMessage = `feat: add ${slug} to filecoin network`;
           const prTitle = `feat(rpc): Add ${slug} for Filecoin`;
           const prBody = `## Validation checklist
