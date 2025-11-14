@@ -66,6 +66,21 @@ export function AppHeader() {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              asChild
+              className="h-8 w-8"
+            >
+              <a
+                href="https://github.com/laciferin2024/rpc-love"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="View source code on GitHub"
+              >
+                <Github className="h-4 w-4" />
+              </a>
+            </Button>
             {isAuthenticated && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
